@@ -3,8 +3,8 @@
 # Names:        MIDN Allison Annick, USN
 #               MIDN Kevin Nguyen, USN
 # Course:       SY308 - Security Fundamental Principles
-# Assignment:   Project01 - ATM Design and Implementation Pt 1
-# Reference:    Design Document (SY308 Project 1 Design Doc)
+# Assignment:   Project02 - ATM Redesign
+# Reference:    Design Document (SY308 Project 2 Design Doc)
 #
 
 import config

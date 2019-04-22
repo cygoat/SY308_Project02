@@ -3,10 +3,9 @@
 # Names:        MIDN Allison Annick, USN
 #               MIDN Kevin Nguyen, USN
 # Course:       SY308 - Security Fundamental Principles
-# Assignment:   Project01 - ATM Design and Implementation Pt 1
-# Reference:    Design Document (SY308 Project 1 Design Doc)
+# Assignment:   Project02 - ATM Redesign
+# Reference:    Design Document (SY308 Project 2 Design Doc)
 #
-
 
 import config
 import socket
@@ -18,6 +17,9 @@ class bank:
     self.s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     self.s.bind((config.local_ip, config.port_bank))
+
+    # TODO: Read pin data from ssBank.bin
+
 
     # Dict to keep track of all users and balances
     self.accounts = {"alice": 123, "bob": 456, "carol": 789}
@@ -167,7 +169,7 @@ class bank:
 
                   break
               except IndexError:
-                  print("Error: must input user and amount to withdraw.")
+                  return "Error: must input user and amount to withdraw."
               except FileNotFoundError:
                   return "Error: User does not exist!"
               except ValueError:
