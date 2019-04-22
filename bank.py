@@ -11,6 +11,9 @@ import config
 import socket
 import select
 import sys
+from Crypto.Cipher import AES
+from Crypto.Util import Counter
+import hashlib
 
 class bank:
   def __init__(self):
@@ -18,14 +21,37 @@ class bank:
     self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     self.s.bind((config.local_ip, config.port_bank))
 
-    # TODO: Read pin data from ssBank.bin
+    self._username = 0
+    self._pin = 1
+    self._balance = 2
 
+    self._alice = 0
+    self._bob = 1
+    self._carol = 2
+
+
+    # Read data from ssBank.bin
+    ssBank = open("ssBank.bin","r")
+    self.lstUserData = []
+    lstUsers = ssBank.readlines()
+    self.aesKey = lstUsers[0].strip()
+    del lstUsers[0]
+    for user in lstUsers:
+        lstInfo = user.strip().split(";")
+        self.lstUserData.append(lstInfo)
 
     # Dict to keep track of all users and balances
     self.accounts = {"alice": 123, "bob": 456, "carol": 789}
 
     # Current user logged into the atm
     self.currentUser = ""
+
+    # AES CTR setup
+    self._AESctr = Counter.new(128)
+    self._AESKey = str.encode(self.aesKey)
+    self.AES = AES.new(self._AESKey, AES.MODE_CTR, counter=self._AESctr)
+
+
 
   def __del__(self):
     self.s.close()
@@ -207,14 +233,20 @@ class bank:
   # TO DO: Modify the following function to handle the atm request
   #====================================================================
   def handleRemote(self, inBytes):
-    print("\nFrom ATM: ", inBytes.decode("utf-8") )
-    atmCommand = inBytes.decode("utf-8")
+    self.AES = AES.new(self._AESKey, AES.MODE_CTR, counter=self._AESctr)
+    decInput = self.AES.decrypt(inBytes)
+    print(decInput)
+    atmCommand = decInput
 
     commandOutput = self.handleCommand(atmCommand.strip().split())
 
     while True:
         try:
-            self.sendBytes(commandOutput.encode()) #encode the message as bytes
+            # Before sending bytes. encrypt
+            self.AES = AES.new(self._AESKey, AES.MODE_CTR, counter=self._AESctr)
+            encCommandOutput = self.AES.encrypt(commandOutput.encode())
+
+            self.sendBytes(encCommandOutput.encode()) #encode the message as bytes
             break
         except AttributeError: # NoneType trying to be sent, ignore
             break

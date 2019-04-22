@@ -11,6 +11,9 @@ import config
 import socket
 import select
 import sys
+from Crypto.Cipher import AES
+from Crypto.Util import Counter
+import hashlib
 
 class atm:
   def __init__(self):
@@ -20,6 +23,13 @@ class atm:
     self.pins = {"1234": "Alice", "4321": "Bob", "1122": "Carol"}
     self.promptMessage = "ATM: "
     self.currentUser = None # If this is set, the user is authenticated
+
+    # Set up AES CTR mode
+    fdSSatm = open("ssATM.bin", "r")
+    self.aesKey = fdSSatm.readline().strip()
+    self._AESctr = Counter.new(128)
+    self._AESKey = str.encode(self.aesKey)
+    self.AES = AES.new(self._AESKey, AES.MODE_CTR, counter=self._AESctr)
 
   def __del__(self):
     self.s.close()
@@ -95,6 +105,8 @@ class atm:
         self.prompt()
         return
 
+    self.AES = AES.new(self._AESKey, AES.MODE_CTR, counter=self._AESctr)
+    encString = self.AES.encrypt(inString.encode())
     self.sendBytes(bytes(inString, "utf-8"))
 
 
@@ -102,7 +114,9 @@ class atm:
   # TO DO: Modify the following function to handle the bank's reply
   #====================================================================
   def handleRemote(self, inBytes):
-    print(inBytes.decode("utf-8") )
+    self.AES = AES.new(self._AESKey, AES.MODE_CTR, counter=self._AESctr)
+    decInput = self.AES.decrypt(inBytes)
+    print(decInput.decode("utf-8"))
     self.prompt()
 
 
