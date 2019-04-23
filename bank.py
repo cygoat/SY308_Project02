@@ -132,7 +132,7 @@ class bank:
 
                   break
               except IndexError:
-                  print("Error: must input user and amount to deposit.")
+                  return "Error: must input user and amount to deposit."
               except FileNotFoundError:
                   return "Error: User does not exist!"
               except ValueError:
